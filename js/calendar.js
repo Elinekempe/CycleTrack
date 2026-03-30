@@ -2,9 +2,26 @@ import { state, el, getEntry } from "./state.js";
 import { getCycleMetrics } from "./cycle-utils.js";
 import { debug } from "./logger.js";
 
+//YYY-MM-DD als lokale datum
+function parseLocalDate(dateStr) {
+  const [yearText, monthText, dayText] = dateStr.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  return new Date(year, month - 1, day);
+}
+
+// Lokale datum naar YYYY-MM-DD string
+function formatLocalDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // Bepaalt voor één datum in welke cyclusfase die valt.
 export function getCyclePhase(dateStr, cycles) {
-  const d = new Date(dateStr);
+  const d = parseLocalDate(dateStr);
   
   const { periodEntries, periodGroups, avgLength, avgPeriodLength, ovulationDay, lastPeriodStart } = getCycleMetrics(
     state.data.entries,
@@ -21,7 +38,7 @@ export function getCyclePhase(dateStr, cycles) {
     
     // Loop door alle periodestarts en bepaal de fase binnen die cyclus.
     for (let i = 0; i < periodGroups.length; i++) {
-      const cycleStart = new Date(periodGroups[i][0].date);
+      const cycleStart = parseLocalDate(periodGroups[i][0].date);
       const cycleEnd = new Date(cycleStart);
       cycleEnd.setDate(cycleEnd.getDate() + avgLength - 1);
       
@@ -56,26 +73,30 @@ export function getCyclePhase(dateStr, cycles) {
 
 // Eenvoudige fallbackberekening wanneer er nog weinig of geen logs zijn.
 function getCyclePhaseFromDefaults(dateStr, cycles) {
-  const d = new Date(dateStr);
+  const d = parseLocalDate(dateStr);
+  if (!cycles || !cycles.length) return "normal";
+
   for (const c of cycles) {
-    // Bepaal start- en einddatum voor standaardcyclus.
-    const start = new Date(c.start);
-    const end = new Date(start);
-    end.setDate(end.getDate() + c.length - 1);
+    const start = parseLocalDate(c.start);
+    const cycleLength = c.length || 28;
+    const periodLength = c.periodLength || 5;
 
-    // Alleen dagen binnen deze cyclus evalueren.
-    if (d >= start && d <= end) {
-      const dayIndex = Math.floor((d - start) / 86400000);
-      const periodEnd = c.periodLength - 1;
-      const ovulationDay = Math.round(c.length / 2);
-
-      // Bepaal fase binnen standaardcyclus.
-      if (dayIndex <= periodEnd) return "period";
-      if (dayIndex === ovulationDay) return "ovulation";
-      if (dayIndex >= ovulationDay - 2 && dayIndex <= ovulationDay + 2) return "fertile";
-      return "normal";
+    // Voor data vóór de startdatum gebruiken we geen projectie.
+    if (d < start) {
+      continue;
     }
+
+    // Projecteer de standaardcyclus oneindig door vanaf startdatum.
+    const daysSinceStart = Math.floor((d - start) / 86400000);
+    const cycleDay = daysSinceStart % cycleLength;
+    const ovulationDay = Math.round(cycleLength / 2);
+
+    if (cycleDay < periodLength) return "period";
+    if (cycleDay === ovulationDay) return "ovulation";
+    if (cycleDay >= ovulationDay - 2 && cycleDay <= ovulationDay + 2) return "fertile";
+    return "normal";
   }
+
   return "normal";
 }
 
@@ -100,7 +121,7 @@ export function renderCalendar() {
   
   // Vandaag gebruiken voor extra visuele highlight.
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = formatLocalDate(today);
 
   // Lege cellen voor de startoffset (zodat weekdagen goed uitlijnen).
   for (let i = 0; i < startOffset; i++) cal.appendChild(document.createElement("div"));
@@ -108,7 +129,7 @@ export function renderCalendar() {
   for (let day = 1; day <= daysInMonth; day++) {
     // Maak datum + ISO-string voor deze dag.
     const date = new Date(year, month, day);
-    const dateStr = date.toISOString().slice(0, 10);
+    const dateStr = formatLocalDate(date);
 
     // Bepaal fase en eventuele bestaande entry.
     const phase = getCyclePhase(dateStr, state.data.cycles);

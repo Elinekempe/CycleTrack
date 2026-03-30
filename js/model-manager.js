@@ -54,9 +54,7 @@ export function initModals() {
   el("interceptCancel").onclick = hideIntercourseModal;
 }
 
-/**
- * Toon intercourse modal
- */
+// Toon intercourse modal
 export function showIntercourseModal() {
   el("intercourseModal").classList.remove("hidden");
 }
