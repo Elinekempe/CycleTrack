@@ -1,0 +1,24 @@
+{
+    "config": {
+        "appName": "CycleTrack",
+        "storeageKey": "cycletrack.v1",
+        "locale": "nl-NL",
+        "privateMode": false
+    },
+    "catalog": {
+        "symptoms": ["Mensturatie","Krampen","Hoofdpijn","Stemmingswisselingen","Moeheid"],
+        "moods": ["😀","🙂","😐","🙁","😣"],
+        "tags": ["Sport","Stress","Slaap"]
+    },
+    "cycles":[
+        { "start": "2024-12-01", "length":28, "periodLength": 7 }
+    ],
+    "entries": [],
+    "reminders": [
+        { "type": "period", "dayBefore":2, "enabled": true }
+    ],
+    "insights": {
+        "avgCycleLength": 28,
+        "avgPeriodLength":7
+    }
+}
