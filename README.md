@@ -2,7 +2,7 @@
 
 CycleTrack is een website om je cyclus en klachten per dag bij te houden.
 
-## Wat kun je hiermee?
+## Wat kun je doen?
 
 Met deze website kun je per dag opslaan:
 - symptomen
@@ -57,7 +57,7 @@ cd CycleTrack
 - Dagen zonder match worden lichter gemaakt.
 - Zet het filter terug op leeg om alles weer normaal te zien.
 
-## Bestanden (kort)
+## Bestanden
 
 - `index.html` – de pagina zelf (layout en knoppen)
 - `data.json` – standaardinstellingen (symptomen, moods, tags, startcyclus)
